@@ -31,8 +31,8 @@ class TestOperations(unittest.TestCase):
                     a = board()
                     b = board()
                     
-                    a._rings[0][start_index] = board.Player.white
-                    b._rings[0][end_index] = board.Player.white
+                    a._rings[rings_index][start_index] = board.Player.white
+                    b._rings[rings_index][end_index] = board.Player.white
                     
                     self.assertEqual(a.getMirrored(offset), b)
 
@@ -48,7 +48,7 @@ class TestIDs(unittest.TestCase):
             for index in range(board._ring_size):
                 b = board()
                 
-                b._rings[rings_index][index] = board.Player.white;
+                b._rings[rings_index][index] = board.Player.white
                 
                 self.assertNotEqual(a, b)
                 self.assertNotEqual(
@@ -60,7 +60,7 @@ class TestIDs(unittest.TestCase):
             for index in range(board._ring_size):
                 a = board()
                 
-                a._rings[rings_index][index] = board.Player.white;
+                a._rings[rings_index][index] = board.Player.white
                 
                 for b in a._getEquivalentBoards():
                     with self.subTest(a=a, b=b, rings_index=rings_index, index=index):

@@ -81,7 +81,7 @@ class board:
 
     def completePlacement(self):
         for player in (self.Player.black, board.Player.white):
-            if self.countPieces(board.Player.white) < board._piece_count:
+            if self.countPieces(player) < board._piece_count:
                 break
         else:
             self.phase = board.Phase.move
