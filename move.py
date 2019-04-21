@@ -4,18 +4,24 @@
 class Move:
     def __init__(self, board, target, source=None):
         self.board = board
-        self.source = source
-        self.target = target
+        self.target = (
+            target[0] % board.num_rings,
+            target[1] % board.num_rings)
+        if source:
+            self.source = (
+                source[0] % board.num_rings,
+                source[1] % board.num_rings)
+        else:
+            self.source = None
 
     def is_valid(self):
         if self.board.phase is self.board.Phase.place:
-            return self.is_valid_placement()
+            return self._is_valid_placement()
 
         return False
 
-    def is_valid_placement(self):
-        if self.board.phase is not self.board.Phase.place:
-            return False
+    def _is_valid_placement(self):
+        assert self.board.phase is self.board.Phase.place
 
         if self.source is not None:
             return False
