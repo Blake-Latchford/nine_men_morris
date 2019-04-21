@@ -30,6 +30,8 @@ class Move:
         return target_piece is self.board.Player.none
 
     def creates_mill(self):
+        if not self.is_valid():
+            return False
         if self._creates_spoke_mill():
             return True
 
@@ -40,7 +42,7 @@ class Move:
 
         spoke_offset = self.board.spoke_period - 1
         target_spoke_offset = self.target[1] % self.board.spoke_period
-        if self.target[1] != self.source[1] and \
+        if (not self.source or self.target[1] != self.source[1]) and \
                 target_spoke_offset == spoke_offset:
             for rings_index, ring in enumerate(self.board.rings):
                 if rings_index == self.target[0]:

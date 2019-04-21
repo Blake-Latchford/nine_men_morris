@@ -29,5 +29,22 @@ class TestOperations(unittest.TestCase):
         self.assertFalse(
             Move(board, (0, 0)).is_valid())
 
+    def test_creates_spoke_mill(self):
+        board = Board()
+        board.rings[0][1] = Board.Player.white
+        board.rings[2][1] = Board.Player.white
+
+        self.assertTrue(
+            Move(board, (1, 1)).creates_mill())
+        self.assertFalse(
+            Move(board, (0, 0)).creates_mill())
+
+        board.rings[1][1] = Board.Player.white
+
+        self.assertFalse(
+            Move(board, (1, 1)).creates_mill())
+        self.assertFalse(
+            Move(board, (0, 0)).creates_mill())
+
 if __name__ == '__main__':
     unittest.main(exit=False)
