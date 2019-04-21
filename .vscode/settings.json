@@ -1,0 +1,4 @@
+{
+    "python.linting.pylintUseMinimalCheckers": false,
+    "python.linting.pylintArgs" : ["--disable", "missing-docstring" "--max-line-length=80"],
+}

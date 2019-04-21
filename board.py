@@ -1,11 +1,10 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict 
+from collections import OrderedDict
 import copy
 from enum import Enum
 import logging
-import os.path
 import sys
 
 def main():
@@ -14,207 +13,208 @@ def main():
         format='%(levelname)s:%(message)s',
         level=logging.DEBUG,
         filemode='w')
-        
-    processedBoardIDs = set()
-    board_list = [board()]
+
+    processed_board_ids = set()
+    board_list = [Board()]
     board_index = 0
-    
+
     while board_index < len(board_list):
         #logging.debug(board_list[board_index])
-        for new_board in board_list[board_index].getValidTurns():
-            universalID = new_board.getUniversalID()
-            if universalID not in processedBoardIDs:
-                processedBoardIDs.add(universalID)
+        for new_board in board_list[board_index].get_valid_turns():
+            universal_id = new_board.getUniversalID()
+            if universal_id not in processed_board_ids:
+                processed_board_ids.add(universal_id)
                 board_list.append(new_board)
         board_index += 1
-    for b in board_list[board_index:]:
-        logging.debug(b)
+    for remaining_board in board_list[board_index:]:
+        logging.debug(remaining_board)
     logging.debug(len(board_list))
     logging.debug(board_index)
 
-        
-class board:
 
-    _ring_size = 8
-    _num_rings = 3
-    _piece_count = 9
-    _spoke_period = 2
+class Board:
+
+    ring_size = 8
+    num_rings = 3
+    piece_count = 9
+    spoke_period = 2
 
     Player = Enum('Player', 'none white black')
     Phase = Enum('Phase', 'place move flying')
 
     def __init__(self):
-        self._rings = list()
+        self.rings = list()
 
-        for _ in range(self._num_rings):
-            self._rings.append([board.Player.none] * board._ring_size)
+        for _ in range(self.num_rings):
+            self.rings.append([Board.Player.none] * Board.ring_size)
 
-        self.phase = board.Phase.place
-        self.turn = board.Player.white
+        self.phase = Board.Phase.place
+        self.turn = Board.Player.white
 
-    def getValidTurns(self):
-        validTurns = []
-        if self.phase is board.Phase.place:
-            validTurns = self.getValidPlacements()
-        return self.deduplicateBoards(validTurns)
+    def get_valid_turns(self):
+        valid_turns = []
+        if self.phase is Board.Phase.place:
+            valid_turns = self.get_valid_placements()
+        return self.deduplicate_boards(valid_turns)
 
     @staticmethod
-    def deduplicateBoards(boards):
-        uniqueBoards = OrderedDict()
+    def deduplicate_boards(boards):
+        unique_boards = OrderedDict()
         for board in boards:
-            universalID = board.getUniversalID()
-            if universalID not in uniqueBoards:
-                uniqueBoards[universalID] = board
+            universal_id = board.getUniversalID()
+            if universal_id not in unique_boards:
+                unique_boards[universal_id] = board
 
-        return list(uniqueBoards.values())
+        return list(unique_boards.values())
 
-    def getValidPlacements(self):
-        validPlacements = []
-        for rings_index in range(len(self._rings)):
-            for index in range(board._ring_size):
-                if board.Player.none is self._rings[rings_index][index]:
-                    validPlacements.append(copy.deepcopy(self))
-                    validPlacements[-1]._rings[rings_index][index] = \
+    def get_valid_placements(self):
+        valid_placements = []
+        for rings_index in range(len(self.rings)):
+            for index in range(Board.ring_size):
+                if Board.Player.none is self.rings[rings_index][index]:
+                    valid_placements.append(copy.deepcopy(self))
+                    valid_placements[-1].rings[rings_index][index] = \
                         self.turn
-                    validPlacements[-1].completePlacement()
-        return validPlacements
+                    valid_placements[-1]._complete_placement()
+        return valid_placements
 
-    def completePlacement(self):
-        for player in (self.Player.black, board.Player.white):
-            if self.countPieces(player) < board._piece_count:
+    def _complete_placement(self):
+        for player in (self.Player.black, Board.Player.white):
+            if self.count_pieces(player) < Board.piece_count:
                 break
         else:
-            self.phase = board.Phase.move
-        self.completeTurn()
+            self.phase = Board.Phase.move
+        self._complete_turn()
 
-    def countPieces(self, player):
+    def count_pieces(self, player):
         count = 0
-        for ring in self._rings:
+        for ring in self.rings:
             for place in ring:
                 if place == player:
                     count += 1
         return count
 
-    def completeTurn(self):
-        if board.Player.white == self.turn:
-            self.turn = board.Player.black
+    def _complete_turn(self):
+        if Board.Player.white == self.turn:
+            self.turn = Board.Player.black
         else:
-            self.turn = board.Player.white
+            self.turn = Board.Player.white
 
-    def getUniversalID(self):
+    def get_universal_id(self):
         ids = set()
-        ids.add(self.getUniqueID())
-        for board in self._getEquivalentBoards():
-            ids.add(board.getUniqueID())
+        ids.add(self.get_unique_id())
+        for board in self.get_equivalent_boards():
+            ids.add(board.get_unique_id())
         return sorted(ids)[0]
 
-    def getUniqueID(self):
+    def get_unique_id(self):
 
-        # A unique ID is a perfect hash, but isn't guaranteed to fit in Py_ssize_t
+        # A unique ID is a perfect hash,
+        # but isn't guaranteed to fit in Py_ssize_t
 
-        uniqueID = 0
-        uniqueID = self._combine(uniqueID, self.phase)
-        uniqueID = self._combine(uniqueID, self.turn)
-        for ring in self._rings:
+        unique_id = 0
+        unique_id = self._combine(unique_id, self.phase)
+        unique_id = self._combine(unique_id, self.turn)
+        for ring in self.rings:
             for place in ring:
-                uniqueID = self._combine(uniqueID, place)
-                
-        return uniqueID
+                unique_id = self._combine(unique_id, place)
+
+        return unique_id
 
     @staticmethod
     def _combine(original, enum_value):
         return original * len(type(enum_value)) + enum_value.value - 1
 
-    def _getEquivalentBoards(self):
-        equivalentBoards = list()
+    def get_equivalent_boards(self):
+        equivalent_boards = list()
 
-        for offset in range(self._spoke_period, self._ring_size,
-                            self._spoke_period):
-            equivalentBoards.append(
-                self.getRotated(offset))
-                
-        for offset in range(self._ring_size // 2):
-            equivalentBoards.append(
-                self.getMirrored(offset))
+        for offset in range(self.spoke_period, self.ring_size,
+                            self.spoke_period):
+            equivalent_boards.append(
+                self.get_rotated(offset))
 
-        return equivalentBoards
-        
-    def getRotated(self, offset):
+        for offset in range(self.ring_size // 2):
+            equivalent_boards.append(
+                self.get_mirrored(offset))
+
+        return equivalent_boards
+
+    def get_rotated(self, offset):
         #Modulo doesn't play nice here.
-        offset = offset % self._ring_size
-    
-        rotatedBoard = copy.deepcopy(self)
-        for (index, ring) in enumerate(rotatedBoard._rings):
-            rotatedBoard._rings[index] = ring[-offset:] \
-                + ring[:-offset]
-        return rotatedBoard
+        offset = offset % self.ring_size
 
-    def getMirrored(self, axis):
-        mirroredBoard = copy.deepcopy(self)
-        
-        axis = axis % self._ring_size
-        
-        for rings_index in range(self._num_rings):
-            for offset in range(self._ring_size // 2):
-                positive_offset = (axis + offset) % self._ring_size
-                negative_offset = (axis - offset) % self._ring_size
-                mirroredBoard._rings[rings_index][positive_offset] = \
-                    self._rings[rings_index][negative_offset]
-                mirroredBoard._rings[rings_index][negative_offset] = \
-                    self._rings[rings_index][positive_offset]
-            
-        return mirroredBoard
-        
+        rotated_board = copy.deepcopy(self)
+        for (index, ring) in enumerate(rotated_board.rings):
+            rotated_board.rings[index] = ring[-offset:] \
+                + ring[:-offset]
+        return rotated_board
+
+    def get_mirrored(self, axis):
+        mirrored_board = copy.deepcopy(self)
+
+        axis = axis % self.ring_size
+
+        for rings_index in range(self.num_rings):
+            for offset in range(self.ring_size // 2):
+                positive_offset = (axis + offset) % self.ring_size
+                negative_offset = (axis - offset) % self.ring_size
+                mirrored_board.rings[rings_index][positive_offset] = \
+                    self.rings[rings_index][negative_offset]
+                mirrored_board.rings[rings_index][negative_offset] = \
+                    self.rings[rings_index][positive_offset]
+
+        return mirrored_board
+
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
 
     def __repr__(self):
         ret = 'Phase:' + self.phase.name + '\n'
         ret += 'Turn:' + self.turn.name + '\n'
-        ret += self._boardAsString()
+        ret += self._board_as_string()
         return ret
 
-    def _boardAsString(self):
+    def _board_as_string(self):
         ret = ''
-        if self._ring_size != 8:
+        if self.ring_size != 8:
             return 'Board drawing not implemented.'
 
         # the upper section
 
-        for (ring_index, ring) in enumerate(self._rings):
+        for (ring_index, ring) in enumerate(self.rings):
             ret += ' ' * ring_index
-            gap = ' ' * (self._num_rings - ring_index - 1)
-            for place in ring[:self._ring_size // 2 - 1]:
-                ret += self._placeToString(place) + gap
+            gap = ' ' * (self.num_rings - ring_index - 1)
+            for place in ring[:self.ring_size // 2 - 1]:
+                ret += self._place_to_string(place) + gap
             ret += '\n'
 
         # center row
 
-        for ring in self._rings:
-            ret += self._placeToString(ring[-1])
+        for ring in self.rings:
+            ret += self._place_to_string(ring[-1])
         ret += ' '
-        for ring in self._rings[::-1]:
-            ret += self._placeToString(ring[self._ring_size // 2 - 1])
+        for ring in self.rings[::-1]:
+            ret += self._place_to_string(ring[self.ring_size // 2 - 1])
         ret += '\n'
 
         # bottom row
-        
-        for (reverse_index, ring) in enumerate(self._rings[::-1]):
-            ret += ' ' * (self._num_rings - reverse_index - 1)
+
+        for (reverse_index, ring) in enumerate(self.rings[::-1]):
+            ret += ' ' * (self.num_rings - reverse_index - 1)
             gap = ' ' * reverse_index
-            bottom_row = ring[self._ring_size // 2:-1]
+            bottom_row = ring[self.ring_size // 2:-1]
             bottom_row.reverse()
             for place in bottom_row:
-                ret += self._placeToString(place) + gap
+                ret += self._place_to_string(place) + gap
             ret += '\n'
 
         return ret
-        
+
     @staticmethod
-    def _placeToString(place):
-        if place is board.Player.white:
+    def _place_to_string(place):
+        if place is Board.Player.white:
             return 'W'
-        elif place is board.Player.black:
+        elif place is Board.Player.black:
             return 'B'
         else:
             return '.'

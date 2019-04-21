@@ -1,10 +1,11 @@
-from board import board
-from move import move
 import copy
 import unittest
 
+from board import Board
+from move import Move
+
 class TestOperations(unittest.TestCase):
-    def test_isValid(self):
+    def test_is_valid(self):
         pass
 
 if __name__ == '__main__':
