@@ -7,6 +7,8 @@ from enum import Enum
 import logging
 import sys
 
+import move
+
 def main():
     logging.basicConfig(
         filename=sys.argv[0] + ".txt",
@@ -20,8 +22,8 @@ def main():
 
     while board_index < len(board_list):
         #logging.debug(board_list[board_index])
-        for new_board in board_list[board_index].get_valid_turns():
-            universal_id = new_board.getUniversalID()
+        for new_board in board_list[board_index].get_child_boards():
+            universal_id = new_board.get_universal_id()
             if universal_id not in processed_board_ids:
                 processed_board_ids.add(universal_id)
                 board_list.append(new_board)
@@ -50,55 +52,22 @@ class Board:
 
         self.phase = Board.Phase.place
         self.turn = Board.Player.white
+        self.turn_num = 0
 
-    def get_valid_turns(self):
-        valid_turns = []
-        if self.phase is Board.Phase.place:
-            valid_turns = self.get_valid_placements()
-        return self.deduplicate_boards(valid_turns)
+    def get_child_boards(self):
+        valid_moves = move.Move.get_valid_moves(self)
+        child_boards = [x.get_result() for x in valid_moves]
+        return self.deduplicate_boards(child_boards)
 
     @staticmethod
     def deduplicate_boards(boards):
         unique_boards = OrderedDict()
         for board in boards:
-            universal_id = board.getUniversalID()
+            universal_id = board.get_universal_id()
             if universal_id not in unique_boards:
                 unique_boards[universal_id] = board
 
         return list(unique_boards.values())
-
-    def get_valid_placements(self):
-        valid_placements = []
-        for rings_index in range(len(self.rings)):
-            for index in range(Board.ring_size):
-                if Board.Player.none is self.rings[rings_index][index]:
-                    valid_placements.append(copy.deepcopy(self))
-                    valid_placements[-1].rings[rings_index][index] = \
-                        self.turn
-                    valid_placements[-1]._complete_placement()
-        return valid_placements
-
-    def _complete_placement(self):
-        for player in (self.Player.black, Board.Player.white):
-            if self.count_pieces(player) < Board.piece_count:
-                break
-        else:
-            self.phase = Board.Phase.move
-        self._complete_turn()
-
-    def count_pieces(self, player):
-        count = 0
-        for ring in self.rings:
-            for place in ring:
-                if place == player:
-                    count += 1
-        return count
-
-    def _complete_turn(self):
-        if Board.Player.white == self.turn:
-            self.turn = Board.Player.black
-        else:
-            self.turn = Board.Player.white
 
     def get_universal_id(self):
         ids = set()

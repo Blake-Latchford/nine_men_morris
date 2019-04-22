@@ -1,3 +1,4 @@
+import copy
 
 class Move:
     def __init__(self, board, target, source=None):
@@ -86,3 +87,58 @@ class Move:
                 return True
 
         return False
+
+    @staticmethod
+    def get_valid_moves(board):
+        phase_calls = {
+            board.Phase.place : Move._get_valid_placements
+        }
+
+        if board.phase in phase_calls:
+            return phase_calls[board.phase](board)
+
+        return None
+
+    @staticmethod
+    def _get_valid_placements(board):
+        valid_moves = []
+        for rings_index in range(board.num_rings):
+            for index in range(board.ring_size):
+                if board.Player.none is board.rings[rings_index][index]:
+                    valid_moves.append(
+                        Move(board, (rings_index, index)))
+        return valid_moves
+
+    def get_result(self):
+        phase_calls = {
+            self.board.Phase.place : self._get_placement_result
+        }
+
+        if self.is_valid() and self.board.phase in phase_calls:
+            return phase_calls[self.board.phase]()
+
+        return None
+
+    def _get_placement_result(self):
+        assert self.board.Phase.place is self.board.phase
+
+        new_board = copy.deepcopy(self.board)
+        new_board.rings[self.target[0]][self.target[1]] = \
+            new_board.turn
+        new_board.turn_num += 1
+
+        #TODO resolve a merril.
+        if self.creates_mill():
+            raise NotImplementedError()
+
+        if new_board.turn_num > (new_board.piece_count * 2):
+            new_board.phase = new_board.Phase.move
+        self._swtich_player(new_board)
+        return new_board
+
+    @staticmethod
+    def _swtich_player(board):
+        if board.Player.white == board.turn:
+            board.turn = board.Player.black
+        else:
+            board.turn = board.Player.white
