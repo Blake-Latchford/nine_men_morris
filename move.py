@@ -127,7 +127,7 @@ class Move:
             new_board.turn
         new_board.turn_num += 1
 
-        #TODO resolve a merril.
+        #TODO resolve a mill.
         if self.creates_mill():
             raise NotImplementedError()
 

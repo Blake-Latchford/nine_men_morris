@@ -80,12 +80,12 @@ class TestMills(unittest.TestCase):
     def test_creates_ring_mill_lower(self):
         board = Board()
         board.rings[0][6] = Board.Player.none
-        
+
         self.assertFalse(
             Move(board, (0, 0)).creates_mill())
         self.assertFalse(
             Move(board, (0, 7)).creates_mill())
-        
+
         board.rings[0][7] = Board.Player.white
 
         self.assertTrue(
