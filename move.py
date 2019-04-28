@@ -57,8 +57,6 @@ class Move:
         return False
 
     def _creates_ring_mill(self):
-        ring = self.board.rings[self.target[0]]
-
         break_interval = max(self.board.spoke_period, 2)
 
         # If target[1] is on a corner, then start != mid != end
@@ -69,14 +67,15 @@ class Move:
         end = float(self.target[1] + 1) / break_interval
         end = int(math.ceil(end) * break_interval) % self.board.ring_size
 
-        if self._search_ring(ring, start, mid):
+        if self._search_for_half_ring_mill(start, mid):
             return True
-        if self._search_ring(ring, mid, end):
+        if self._search_for_half_ring_mill(mid, end):
             return True
 
         return False
 
-    def _search_ring(self, ring, from_index, to_index):
+    def _search_for_half_ring_mill(self, from_index, to_index):
+        ring = self.board.rings[self.target[0]]
         index = from_index
 
         if from_index == to_index:
