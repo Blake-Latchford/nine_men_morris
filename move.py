@@ -1,4 +1,5 @@
 import copy
+import math
 
 class Move:
     def __init__(self, board, target, source=None):
@@ -36,7 +37,7 @@ class Move:
         if self._creates_ring_mill():
             return True
 
-        return self._creates_ring_mill()
+        return False
 
     def _creates_spoke_mill(self):
         #If the move is on a spoke, look for a mill along it.
@@ -65,27 +66,29 @@ class Move:
         start = (self.target[1] - 1) % self.board.ring_size
         start = (start // break_interval) * break_interval
         mid = (self.target[1] // break_interval) * break_interval
-        end = ((self.target[1] + 1) // break_interval) * break_interval
+        end = float(self.target[1] + 1) / break_interval
+        end = int(math.ceil(end) * break_interval) % self.board.ring_size
 
-        index = start
-        if index < mid:
-            while index <= mid:
-                if index != self.target[1] and ring[index] != self.board.turn:
-                    break
-                index += 1
-            else:
+        if self._search_ring(ring, start, mid):
+            return True
+        if self._search_ring(ring, mid, end):
+            return True
+
+        return False
+
+    def _search_ring(self, ring, from_index, to_index):
+        index = from_index
+
+        if from_index == to_index:
+            return False
+
+        while True:
+            if index != self.target[1] and ring[index] != self.board.turn:
+                break
+            if index == to_index:
                 return True
-
-        if index < end:
-            while index <= end:
-                index_mod = index % self.board.ring_size
-                if index_mod != self.target[1] and \
-                    ring[index_mod] != self.board.turn:
-                    break
-                index += 1
-            else:
-                return True
-
+            index = (index + 1) % self.board.ring_size
+        
         return False
 
     @staticmethod

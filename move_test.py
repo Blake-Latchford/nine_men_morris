@@ -28,7 +28,7 @@ class TestIsValid(unittest.TestCase):
 
         self.assertFalse(
             Move(board, (0, 0)).is_valid())
-    
+
     def test_place_with_source(self):
         board = Board()
         board = Move(board, (0, 0)).get_result()
@@ -87,7 +87,7 @@ class TestMills(unittest.TestCase):
 
     def test_creates_ring_mill_lower(self):
         board = Board()
-        board.rings[0][6] = Board.Player.none
+        board.rings[0][6] = Board.Player.white
 
         self.assertFalse(
             Move(board, (0, 0)).creates_mill())
@@ -97,9 +97,9 @@ class TestMills(unittest.TestCase):
         board.rings[0][7] = Board.Player.white
 
         self.assertTrue(
-            Move(board, (0, -1)).creates_mill())
+            Move(board, (0, 0)).creates_mill())
         self.assertFalse(
-            Move(board, (1, -1)).creates_mill())
+            Move(board, (1, 0)).creates_mill())
 
 
 if __name__ == '__main__':
