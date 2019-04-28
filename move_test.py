@@ -4,7 +4,7 @@ from board import Board
 from move import Move
 
 class TestIsValid(unittest.TestCase):
-    def test_is_valid_happy_path(self):
+    def test_happy_path(self):
         board = Board()
 
         self.assertTrue(
@@ -22,12 +22,20 @@ class TestIsValid(unittest.TestCase):
         self.assertTrue(
             Move(board, (0, board.ring_size)).is_valid())
 
-    def test_is_valid_place_on_top(self):
+    def test_place_on_top(self):
         board = Board()
         board.rings[0][0] = Board.Player.white
 
         self.assertFalse(
             Move(board, (0, 0)).is_valid())
+    
+    def test_place_with_source(self):
+        board = Board()
+        board = Move(board, (0, 0)).get_result()
+        board = Move(board, (0, 1)).get_result()
+
+        self.assertFalse(
+            Move(board, (0, 0), (1, 1)).is_valid())
 
 class TestMills(unittest.TestCase):
     def test_creates_mill_invalid_move(self):
