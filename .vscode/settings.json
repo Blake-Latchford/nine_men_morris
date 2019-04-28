@@ -1,4 +1,11 @@
 {
     "python.linting.pylintUseMinimalCheckers": false,
-    "python.linting.pylintArgs" : ["--disable", "missing-docstring,protected-access", "--max-line-length=80"],
+    "python.linting.pylintArgs" : ["--disable", "missing-docstring,protected-access", "--max-line-length=79"],
+    
+    "[python]": {
+        "editor.rulers": [
+            79,
+            120
+        ]
+    }
 }
