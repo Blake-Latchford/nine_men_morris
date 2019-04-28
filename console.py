@@ -14,26 +14,34 @@ def get_move(board):
     move = None
 
     while not move:
-        try:
-            move_strings = sys.stdin.readline().split()
+        print("Move location:")
+        move = Move(board, get_pair())
+        if move.creates_mill():
+            print("Specify mill target")
+            move.mill_target = get_pair()
 
-            if len(move_strings) != 2:
-                print("Move command in format '<ring_index> <ring_position>")
-                continue
-
-            move_ints = [int(x) for x in move_strings]
-
-            move = Move(board, move_ints)
-
-            if not move.is_valid():
-                print("Invalid move specified")
-                move = None
-        except ValueError as value_error:
-            print(value_error)
+        if not move.is_valid():
+            move = None
 
     return move
 
+def get_pair():
+    pair = None
 
+    while not pair:
+        try:
+            pair_strings = sys.stdin.readline().split()
+
+            if len(pair_strings) != 2:
+                print("Move command in format '<ring_index> <ring_position>'")
+                continue
+
+            pair = [int(x) for x in pair_strings]
+        except ValueError as value_error:
+            pair = None
+            print(value_error)
+    
+    return pair
 
 if __name__ == '__main__':
     main()

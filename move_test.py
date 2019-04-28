@@ -10,6 +10,8 @@ class TestMove(unittest.TestCase):
         self.assertTrue(
             Move(board, (0, 0)).is_valid())
         self.assertTrue(
+            Move(board, ("0", "0")).is_valid())
+        self.assertTrue(
             Move(board, (1, 4)).is_valid())
         self.assertTrue(
             Move(board, (2, 7)).is_valid())
@@ -21,6 +23,16 @@ class TestMove(unittest.TestCase):
             Move(board, (board.num_rings, 0)).is_valid())
         self.assertTrue(
             Move(board, (0, board.ring_size)).is_valid())
+
+    def test_move_properties(self):
+        board = Board()
+        move = Move(board, (0, 0))
+        move.source = (1, 1)
+        move.mill_target = (2, 2)
+
+        self.assertIsInstance(move.target, move.MoveCoordinates)
+        self.assertIsInstance(move.source, move.MoveCoordinates)
+        self.assertIsInstance(move.mill_target, move.MoveCoordinates)
 
     def test_place_on_top(self):
         board = Board()

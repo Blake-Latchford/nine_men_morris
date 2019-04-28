@@ -9,9 +9,33 @@ class Move:
 
     def __init__(self, board, target, source=None, mill_target=None):
         self.board = board
-        self.target = self._make_move_coordinates(target)
-        self.source = self._make_move_coordinates(source)
-        self.mill_target = self._make_move_coordinates(mill_target)
+        self.target = target
+        self.source = source
+        self.mill_target = mill_target
+
+    @property
+    def target(self):
+        return self._target
+
+    @target.setter
+    def target(self, value):
+        self._target = self._make_move_coordinates(value)
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, value):
+        self._source = self._make_move_coordinates(value)
+
+    @property
+    def mill_target(self):
+        return self._mill_target
+
+    @mill_target.setter
+    def mill_target(self, value):
+        self._mill_target = self._make_move_coordinates(value)
 
     def _make_move_coordinates(self, pair):
         if pair is None:
