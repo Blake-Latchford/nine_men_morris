@@ -3,26 +3,36 @@ import unittest
 from board import Board
 from move import Move
 
+class TestEquality(unittest.TestCase):
+    def test_equal(self):
+        board = Board()
+        
+        first = Move(board, (0, 0))
+        second = Move(board, (0, 0))
+        third = Move(board, (0, 1))
+
+        self.assertEqual(first, second)
+        self.assertNotEqual(first, third)
+
 class TestPlacement(unittest.TestCase):
     def test_happy_path(self):
         board = Board()
+        instructions = (
+            (0, 0),
+            ("0", "0"),
+            (1, 4),
+            (2, 7),
+            (-1, 0),
+            (0, -1),
+            (board.num_rings, 0),
+            (0, board.ring_size),
+        )
 
-        self.assertTrue(
-            Move(board, (0, 0)).is_valid())
-        self.assertTrue(
-            Move(board, ("0", "0")).is_valid())
-        self.assertTrue(
-            Move(board, (1, 4)).is_valid())
-        self.assertTrue(
-            Move(board, (2, 7)).is_valid())
-        self.assertTrue(
-            Move(board, (-1, 0)).is_valid())
-        self.assertTrue(
-            Move(board, (0, -1)).is_valid())
-        self.assertTrue(
-            Move(board, (board.num_rings, 0)).is_valid())
-        self.assertTrue(
-            Move(board, (0, board.ring_size)).is_valid())
+        for instruction in instructions:
+            move = Move(board, instruction)
+            with self.subTest(move=move):
+                self.assertTrue(move.is_valid())
+                self.assertIn(move, Move.get_valid_moves(board))
 
     def test_move_properties(self):
         board = Board()
@@ -38,16 +48,18 @@ class TestPlacement(unittest.TestCase):
         board = Board()
         board.rings[0][0] = Board.Player.white
 
-        self.assertFalse(
-            Move(board, (0, 0)).is_valid())
+        move = Move(board, (0, 0))
+        self.assertFalse(move.is_valid())
+        self.assertNotIn(move, Move.get_valid_moves(board))
 
     def test_place_with_source(self):
         board = Board()
         board = Move(board, (0, 0)).get_result()
         board = Move(board, (0, 1)).get_result()
 
-        self.assertFalse(
-            Move(board, (0, 0), (1, 1)).is_valid())
+        move = Move(board, (0, 0), (1, 1))
+        self.assertFalse(move.is_valid())
+        self.assertNotIn(move, Move.get_valid_moves(board))
 
     def test_mill_target(self):
         board = Board()

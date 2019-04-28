@@ -222,3 +222,16 @@ class Move:
 
     def _get_player(self, position):
         return self.board.rings[position.ring_index][position.ring_position]
+
+    def __str__(self):
+        return (
+            "target(" + str(self._target) + ")" +
+            "source(" + str(self._source) + ")" +
+            "mill_target(" + str(self._mill_target) + ")"
+        )
+
+    def __repr__(self):
+        return str(self)
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
