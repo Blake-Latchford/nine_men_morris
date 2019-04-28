@@ -8,7 +8,13 @@ class Move:
         ("ring_index", "ring_position"))
 
     def __init__(self, board, target, source=None, mill_target=None):
+        assert board
         self.board = board
+
+        self._target = None
+        self._source = None
+        self._mill_target = None
+
         self.target = target
         self.source = source
         self.mill_target = mill_target
@@ -58,18 +64,18 @@ class Move:
             [self.mill_target.ring_index]\
             [self.mill_target.ring_position]
         expected_mill_target_player = \
-            self._other_player(self.board)
-        
+            self._last_player(self.board)
+
         return mill_target_player == expected_mill_target_player
 
     def _is_valid_move(self):
-        if self.board.phase is self.board.Phase.place:
+        if self.board.is_placing():
             return self._is_valid_placement()
 
         return False
 
     def _is_valid_placement(self):
-        assert self.board.phase is self.board.Phase.place
+        assert self.board.is_placing()
 
         if self.source is not None:
             return False
@@ -105,7 +111,7 @@ class Move:
         for rings_index, ring in enumerate(self.board.rings):
             if rings_index == self.target.ring_index:
                 continue
-            elif ring[self.target.ring_position] != self.board.turn:
+            elif ring[self.target.ring_position] != self.board.next_player:
                 break
         else:
             return True
@@ -139,7 +145,7 @@ class Move:
 
         while True:
             if (index != self.target.ring_position and
-                    ring[index] != self.board.turn):
+                    ring[index] != self.board.next_player):
                 break
             if index == to_index:
                 return True
@@ -149,12 +155,8 @@ class Move:
 
     @staticmethod
     def get_valid_moves(board):
-        phase_calls = {
-            board.Phase.place : Move._get_valid_placements
-        }
-
-        if board.phase in phase_calls:
-            return phase_calls[board.phase](board)
+        if board.is_placing():
+            return Move._get_valid_placements(board)
 
         return None
 
@@ -169,21 +171,17 @@ class Move:
         return valid_moves
 
     def get_result(self):
-        phase_calls = {
-            self.board.Phase.place : self._get_placement_result
-        }
-
-        if self.is_valid() and self.board.phase in phase_calls:
-            return phase_calls[self.board.phase]()
+        if self.board.is_placing():
+            return self._get_placement_result()
 
         return None
 
     def _get_placement_result(self):
-        assert self.board.Phase.place is self.board.phase
+        assert self.board.is_placing()
 
         new_board = copy.deepcopy(self.board)
         new_board.rings[self.target.ring_index][self.target.ring_position] = \
-            new_board.turn
+            new_board.next_player
         new_board.turn_num += 1
 
         if self.creates_mill():
@@ -192,13 +190,13 @@ class Move:
                 [self.mill_target.ring_position] = self.board.Player.none
 
         if new_board.turn_num > (new_board.piece_count * 2):
-            new_board.phase = new_board.Phase.move
-        new_board.turn = self._other_player(self.board)
+            new_board.turn_num = -1
+        new_board.next_player = self._last_player(self.board)
         return new_board
 
     @staticmethod
-    def _other_player(board):
-        if board.Player.white == board.turn:
+    def _last_player(board):
+        if board.Player.white == board.next_player:
             return board.Player.black
         else:
             return board.Player.white

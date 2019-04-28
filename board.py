@@ -42,7 +42,6 @@ class Board:
     spoke_period = 2
 
     Player = Enum('Player', 'none white black')
-    Phase = Enum('Phase', 'place move flying')
 
     def __init__(self):
         self.rings = list()
@@ -50,9 +49,11 @@ class Board:
         for _ in range(self.num_rings):
             self.rings.append([Board.Player.none] * Board.ring_size)
 
-        self.phase = Board.Phase.place
-        self.turn = Board.Player.white
+        self.next_player = Board.Player.white
         self.turn_num = 0
+
+    def is_placing(self):
+        return self.turn_num >= 0
 
     def get_child_boards(self):
         valid_moves = move.Move.get_valid_moves(self)
@@ -81,9 +82,8 @@ class Board:
         # A unique ID is a perfect hash,
         # but isn't guaranteed to fit in Py_ssize_t
 
-        unique_id = 0
-        unique_id = self._combine(unique_id, self.phase)
-        unique_id = self._combine(unique_id, self.turn)
+        unique_id = self.turn_num + 1
+        unique_id = self._combine(unique_id, self.next_player)
         for ring in self.rings:
             for place in ring:
                 unique_id = self._combine(unique_id, place)
@@ -138,8 +138,8 @@ class Board:
         return self.__dict__ == other.__dict__
 
     def __repr__(self):
-        ret = 'Phase:' + self.phase.name + '\n'
-        ret += 'Turn:' + self.turn.name + '\n'
+        ret = 'Turn Number:' + str(self.turn_num) + '\n'
+        ret += 'Next Player:' + self.next_player.name + '\n'
         ret += self._board_as_string()
         return ret
 
