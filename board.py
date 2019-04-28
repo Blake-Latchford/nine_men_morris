@@ -188,6 +188,8 @@ class Board:
         else:
             return '.'
 
+    def get_winner(self):
+        return self.Player.none
 
 if __name__ == '__main__':
     main()
