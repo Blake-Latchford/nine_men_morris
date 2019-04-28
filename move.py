@@ -7,10 +7,11 @@ class Move:
         "MoveCoordinates",
         ("ring_index", "ring_position"))
 
-    def __init__(self, board, target, source=None):
+    def __init__(self, board, target, source=None, mill_target=None):
         self.board = board
         self.target = self._make_move_coordinates(target)
         self.source = self._make_move_coordinates(source)
+        self.mill_target = self._make_move_coordinates(mill_target)
 
     def _make_move_coordinates(self, pair):
         if pair is None:
@@ -21,6 +22,23 @@ class Move:
             int(pair[1]) % self.board.ring_size)
 
     def is_valid(self):
+        return self._is_valid_move() and self._is_valid_mill()
+
+    def _is_valid_mill(self):
+        if not self.creates_mill():
+            return True
+        if self.mill_target is None:
+            return False
+
+        mill_target_player = self.board.rings\
+            [self.mill_target.ring_index]\
+            [self.mill_target.ring_position]
+        expected_mill_target_player = \
+            self._other_player(self.board)
+        
+        return mill_target_player == expected_mill_target_player
+
+    def _is_valid_move(self):
         if self.board.phase is self.board.Phase.place:
             return self._is_valid_placement()
 
@@ -38,7 +56,7 @@ class Move:
         return target_piece is self.board.Player.none
 
     def creates_mill(self):
-        if not self.is_valid():
+        if not self._is_valid_move():
             return False
         if self._creates_spoke_mill():
             return True
@@ -150,12 +168,12 @@ class Move:
 
         if new_board.turn_num > (new_board.piece_count * 2):
             new_board.phase = new_board.Phase.move
-        self._swtich_player(new_board)
+        new_board.turn = self._other_player(self.board)
         return new_board
 
     @staticmethod
-    def _swtich_player(board):
+    def _other_player(board):
         if board.Player.white == board.turn:
-            board.turn = board.Player.black
+            return board.Player.black
         else:
-            board.turn = board.Player.white
+            return board.Player.white
