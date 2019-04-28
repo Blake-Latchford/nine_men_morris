@@ -3,7 +3,7 @@ import unittest
 from board import Board
 from move import Move
 
-class TestOperations(unittest.TestCase):
+class TestIsValid(unittest.TestCase):
     def test_is_valid_happy_path(self):
         board = Board()
 
@@ -29,6 +29,7 @@ class TestOperations(unittest.TestCase):
         self.assertFalse(
             Move(board, (0, 0)).is_valid())
 
+class TestMills(unittest.TestCase):
     def test_creates_mill_invalid_move(self):
         board = Board()
         board.rings[0][0] = Board.Player.white
