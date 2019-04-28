@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-from collections import OrderedDict
+import collections
 import copy
 from enum import Enum
 import logging
@@ -62,7 +62,7 @@ class Board:
 
     @staticmethod
     def deduplicate_boards(boards):
-        unique_boards = OrderedDict()
+        unique_boards = collections.OrderedDict()
         for board in boards:
             universal_id = board.get_universal_id()
             if universal_id not in unique_boards:
@@ -189,7 +189,17 @@ class Board:
             return '.'
 
     def get_winner(self):
-        return self.Player.none
+        counts = collections.defaultdict(int)
+        for ring in self.rings:
+            for position in ring:
+                counts[position] += 1
+
+        if counts[Board.Player.white] < 3:
+            return Board.Player.black
+        if counts[Board.Player.black] < 3:
+            return Board.Player.white
+
+        return Board.Player.none
 
 if __name__ == '__main__':
     main()

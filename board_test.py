@@ -77,5 +77,31 @@ class TestIDs(unittest.TestCase):
                             original.get_universal_id(),
                             equivalent.get_universal_id())
 
+class TestWinner(unittest.TestCase):
+    def setUp(self):
+        self.board = Board()
+
+        self.board.rings[0][0] = Board.Player.white
+        self.board.rings[0][1] = Board.Player.white
+        self.board.rings[0][2] = Board.Player.white
+
+        self.board.rings[1][0] = Board.Player.black
+        self.board.rings[1][1] = Board.Player.black
+        self.board.rings[1][2] = Board.Player.black
+
+    def test_none(self):
+        self.assertIs(self.board.get_winner(),
+                      self.board.Player.none)
+
+    def test_white(self):
+        self.board.rings[1][2] = Board.Player.none
+        self.assertIs(self.board.get_winner(),
+                      self.board.Player.white)
+
+    def test_black(self):
+        self.board.rings[0][2] = Board.Player.none
+        self.assertIs(self.board.get_winner(),
+                      self.board.Player.black)
+
 if __name__ == '__main__':
     unittest.main(exit=False)
