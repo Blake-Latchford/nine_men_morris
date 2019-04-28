@@ -20,10 +20,10 @@ def get_move(board):
             if len(move_strings) != 2:
                 print("Move command in format '<ring_index> <ring_position>")
                 continue
-            
+
             move_ints = [int(x) for x in move_strings]
 
-            move = Move(board, move_ints )
+            move = Move(board, move_ints)
 
             if not move.is_valid():
                 print("Invalid move specified")
