@@ -1,18 +1,24 @@
 import copy
 import math
+from collections import namedtuple
 
 class Move:
+    MoveCoordinates = namedtuple(
+        "MoveCoordinates",
+        ("ring_index", "ring_position"))
+
     def __init__(self, board, target, source=None):
         self.board = board
-        self.target = (
-            target[0] % board.num_rings,
-            target[1] % board.ring_size)
-        if source:
-            self.source = (
-                source[0] % board.num_rings,
-                source[1] % board.ring_size)
-        else:
-            self.source = None
+        self.target = self._make_move_coordinates(target)
+        self.source = self._make_move_coordinates(source)
+
+    def _make_move_coordinates(self, pair):
+        if pair is None:
+            return None
+
+        return Move.MoveCoordinates(
+            int(pair[0]) % self.board.num_rings,
+            int(pair[1]) % self.board.ring_size)
 
     def is_valid(self):
         if self.board.phase is self.board.Phase.place:
@@ -26,7 +32,9 @@ class Move:
         if self.source is not None:
             return False
 
-        target_piece = self.board.rings[self.target[0]][self.target[1]]
+        target_piece = self.board.rings\
+            [self.target.ring_index]\
+            [self.target.ring_position]
         return target_piece is self.board.Player.none
 
     def creates_mill(self):
@@ -40,31 +48,37 @@ class Move:
         return False
 
     def _creates_spoke_mill(self):
-        #If the move is on a spoke, look for a mill along it.
+
+        if (self.source and
+                self.target.ring_position == self.source.ring_position):
+            return False
 
         spoke_offset = self.board.spoke_period - 1
-        target_spoke_offset = self.target[1] % self.board.spoke_period
-        if (not self.source or self.target[1] != self.source[1]) and \
-                target_spoke_offset == spoke_offset:
-            for rings_index, ring in enumerate(self.board.rings):
-                if rings_index == self.target[0]:
-                    continue
-                elif ring[self.target[1]] != self.board.turn:
-                    break
-            else:
-                return True
+        target_spoke_offset = \
+            self.target.ring_position % self.board.spoke_period
+
+        if target_spoke_offset != spoke_offset:
+            return False
+
+        for rings_index, ring in enumerate(self.board.rings):
+            if rings_index == self.target.ring_index:
+                continue
+            elif ring[self.target.ring_position] != self.board.turn:
+                break
+        else:
+            return True
 
         return False
 
     def _creates_ring_mill(self):
         break_interval = max(self.board.spoke_period, 2)
 
-        # If target[1] is on a corner, then start != mid != end
+        # If target.ring_position is on a corner, then start != mid != end
         # Otherwise duplicate some work.
-        start = (self.target[1] - 1) % self.board.ring_size
+        start = (self.target.ring_position - 1) % self.board.ring_size
         start = (start // break_interval) * break_interval
-        mid = (self.target[1] // break_interval) * break_interval
-        end = float(self.target[1] + 1) / break_interval
+        mid = (self.target.ring_position // break_interval) * break_interval
+        end = float(self.target.ring_position + 1) / break_interval
         end = int(math.ceil(end) * break_interval) % self.board.ring_size
 
         if self._search_for_half_ring_mill(start, mid):
@@ -75,19 +89,20 @@ class Move:
         return False
 
     def _search_for_half_ring_mill(self, from_index, to_index):
-        ring = self.board.rings[self.target[0]]
+        ring = self.board.rings[self.target.ring_index]
         index = from_index
 
         if from_index == to_index:
             return False
 
         while True:
-            if index != self.target[1] and ring[index] != self.board.turn:
+            if (index != self.target.ring_position and
+                    ring[index] != self.board.turn):
                 break
             if index == to_index:
                 return True
             index = (index + 1) % self.board.ring_size
-        
+
         return False
 
     @staticmethod
@@ -125,7 +140,7 @@ class Move:
         assert self.board.Phase.place is self.board.phase
 
         new_board = copy.deepcopy(self.board)
-        new_board.rings[self.target[0]][self.target[1]] = \
+        new_board.rings[self.target.ring_index][self.target.ring_position] = \
             new_board.turn
         new_board.turn_num += 1
 
