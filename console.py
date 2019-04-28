@@ -40,7 +40,7 @@ def get_pair():
         except ValueError as value_error:
             pair = None
             print(value_error)
-    
+
     return pair
 
 if __name__ == '__main__':

@@ -60,30 +60,46 @@ class Move:
         if self.mill_target is None:
             return False
 
-        mill_target_player = self.board.rings\
-            [self.mill_target.ring_index]\
-            [self.mill_target.ring_position]
-        expected_mill_target_player = \
-            self._last_player(self.board)
+        mill_target_player = self._get_player(self.mill_target)
+        expected_mill_target_player = self._last_player(self.board)
 
         return mill_target_player == expected_mill_target_player
 
     def _is_valid_move(self):
-        if self.board.is_placing():
-            return self._is_valid_placement()
-
-        return False
+        return self._is_valid_placement() or self._is_valid_shift()
 
     def _is_valid_placement(self):
-        assert self.board.is_placing()
+        if not self.board.is_placing():
+            return False
 
         if self.source is not None:
             return False
 
-        target_piece = self.board.rings\
-            [self.target.ring_index]\
-            [self.target.ring_position]
-        return target_piece is self.board.Player.none
+        target_player = self._get_player(self.target)
+        return target_player is self.board.Player.none
+
+    def _is_valid_shift(self):
+        if self.board.is_placing():
+            return False
+
+        if self._get_player(self.source) != self.board.next_player:
+            return False
+
+        if self._get_player(self.target) != self.board.Player.none:
+            return False
+
+        if self.source.ring_index == self.target.ring_index:
+            distance = self.source.ring_position - self.target.ring_position
+            distance = abs(distance)
+            if distance in (1, 7):
+                return True
+        elif self.source.ring_position == self.target.ring_position:
+            spoke_offset = self.board.spoke_period - 1
+            target_spoke_offset = \
+                self.target.ring_position % self.board.spoke_period
+            if spoke_offset == target_spoke_offset:
+                return True
+        return False
 
     def creates_mill(self):
         if not self._is_valid_move():
@@ -108,8 +124,8 @@ class Move:
         if target_spoke_offset != spoke_offset:
             return False
 
-        for rings_index, ring in enumerate(self.board.rings):
-            if rings_index == self.target.ring_index:
+        for ring_index, ring in enumerate(self.board.rings):
+            if ring_index == self.target.ring_index:
                 continue
             elif ring[self.target.ring_position] != self.board.next_player:
                 break
@@ -122,21 +138,20 @@ class Move:
         break_interval = max(self.board.spoke_period, 2)
 
         # If target.ring_position is on a corner, then start != mid != end
-        # Otherwise duplicate some work.
         start = (self.target.ring_position - 1) % self.board.ring_size
         start = (start // break_interval) * break_interval
         mid = (self.target.ring_position // break_interval) * break_interval
         end = float(self.target.ring_position + 1) / break_interval
         end = int(math.ceil(end) * break_interval) % self.board.ring_size
 
-        if self._search_for_half_ring_mill(start, mid):
+        if self._search_for_ring_mill(start, mid):
             return True
-        if self._search_for_half_ring_mill(mid, end):
+        if self._search_for_ring_mill(mid, end):
             return True
 
         return False
 
-    def _search_for_half_ring_mill(self, from_index, to_index):
+    def _search_for_ring_mill(self, from_index, to_index):
         ring = self.board.rings[self.target.ring_index]
         index = from_index
 
@@ -147,6 +162,10 @@ class Move:
             if (index != self.target.ring_position and
                     ring[index] != self.board.next_player):
                 break
+            if (self.source is not None and
+                    self.source.ring_index == self.target.ring_index and
+                    index == self.source.ring_position):
+                return False
             if index == to_index:
                 return True
             index = (index + 1) % self.board.ring_size
@@ -163,11 +182,11 @@ class Move:
     @staticmethod
     def _get_valid_placements(board):
         valid_moves = []
-        for rings_index in range(board.num_rings):
+        for ring_index in range(board.num_rings):
             for index in range(board.ring_size):
-                if board.Player.none is board.rings[rings_index][index]:
+                if board.Player.none is board.rings[ring_index][index]:
                     valid_moves.append(
-                        Move(board, (rings_index, index)))
+                        Move(board, (ring_index, index)))
         return valid_moves
 
     def get_result(self):
@@ -200,3 +219,6 @@ class Move:
             return board.Player.black
         else:
             return board.Player.white
+
+    def _get_player(self, position):
+        return self.board.rings[position.ring_index][position.ring_position]
