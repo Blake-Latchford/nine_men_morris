@@ -55,6 +55,11 @@ class TestMove(unittest.TestCase):
         self.assertTrue(move.is_valid())
         self.assertTrue(move.creates_mill())
 
+        board = move.get_result()
+
+        self.assertIs(board.rings[0][2], board.Player.white)
+        self.assertIs(board.rings[0][3], board.Player.none)
+
     def test_creates_mill_invalid_move(self):
         board = Board()
         board.rings[0][0] = Board.Player.white

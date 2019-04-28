@@ -162,9 +162,10 @@ class Move:
             new_board.turn
         new_board.turn_num += 1
 
-        #TODO resolve a mill.
         if self.creates_mill():
-            raise NotImplementedError()
+            new_board.rings \
+                [self.mill_target.ring_index] \
+                [self.mill_target.ring_position] = self.board.Player.none
 
         if new_board.turn_num > (new_board.piece_count * 2):
             new_board.phase = new_board.Phase.move
