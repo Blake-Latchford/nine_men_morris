@@ -226,5 +226,53 @@ class TestShift(unittest.TestCase):
                 self.assertFalse(move.is_valid())
                 self.assertNotIn(move, Move.get_valid_moves(self.board))
 
+class TestFlying(unittest.TestCase):
+    def setUp(self):
+        board = Board()
+        self.board = board
+        board.turn_num = -1
+
+        self.board.rings[0][1] = self.board.Player.white
+        self.board.rings[0][2] = self.board.Player.white
+        self.board.rings[0][6] = self.board.Player.white
+
+        self.board.rings[1][4] = self.board.Player.black
+        self.board.rings[2][5] = self.board.Player.black
+        self.board.rings[1][6] = self.board.Player.black
+
+    def test_non_mill(self):
+        instructions = (
+            ((2, 0), (0, 1), True),
+            ((1, 7), (0, 1), True),
+            ((0, 0), (0, 2), True),
+            ((1, 0), (0, 1), False),
+            ((0, 2), (0, 1), False),
+            ((1, 4), (0, 1), False),
+            ((2, 0), (0, 1), False),
+            ((0, 0), (1, 4), False),
+        )
+
+        for instruction in instructions:
+            with self.subTest(instruction=instruction):
+                target, source, valid = instruction
+                move = Move(self.board, target, source)
+                self.assertEqual(move.is_valid(), valid)
+                self.assertFalse(move.creates_mill())
+                self.assertIn(move, Move.get_valid_moves(self.board))
+
+    def test_mills(self):
+        instructions = (
+            ((0, 0), (0, 6)),
+        )
+
+        for instruction in instructions:
+            with self.subTest(instruction=instruction):
+                target, source = instruction
+                move = Move(self.board, target, source)
+                self.assertTrue(move.is_valid())
+                self.assertTrue(move.creates_mill())
+                self.assertIn(move, Move.get_valid_moves(self.board))
+
+
 if __name__ == '__main__':
     unittest.main(exit=False)
