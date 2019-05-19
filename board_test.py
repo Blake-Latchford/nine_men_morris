@@ -80,6 +80,7 @@ class TestIDs(unittest.TestCase):
 class TestWinner(unittest.TestCase):
     def setUp(self):
         self.board = Board()
+        self.board.turn_num = -1
 
         self.board.rings[0][0] = Board.Player.white
         self.board.rings[0][1] = Board.Player.white
@@ -102,6 +103,15 @@ class TestWinner(unittest.TestCase):
         self.board.rings[0][2] = Board.Player.none
         self.assertIs(self.board.get_winner(),
                       self.board.Player.black)
+    
+    def test_placing(self):
+        self.board.turn_num = 0
+        self.assertIs(self.board.get_winner(),
+            self.board.Player.none)
+
+        self.board.rings[0][0] = Board.Player.none
+        self.assertIs(self.board.get_winner(),
+            self.board.Player.none)
 
 if __name__ == '__main__':
     unittest.main(exit=False)

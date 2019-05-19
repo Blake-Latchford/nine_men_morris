@@ -189,6 +189,9 @@ class Board:
             return '.'
 
     def get_winner(self):
+        if self.is_placing():
+            return Board.Player.none
+
         counts = collections.defaultdict(int)
         for ring in self.rings:
             for position in ring:
