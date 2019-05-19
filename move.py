@@ -61,7 +61,7 @@ class Move:
             return False
 
         mill_target_player = self._get_player(self.mill_target)
-        expected_mill_target_player = self._last_player(self.board)
+        expected_mill_target_player = self.board.last_player
 
         return mill_target_player == expected_mill_target_player
 
@@ -174,8 +174,8 @@ class Move:
 
     @staticmethod
     def get_valid_moves(board):
-        opponent_coordinates = tuple(Move._get_player_coordinates(
-            board, Move._last_player(board)))
+        opponent_coordinates = tuple(
+            board.get_player_pieces(board.last_player))
         mill_moves = []
         for valid_move in Move._get_valid_moves(board):
             if valid_move.creates_mill():
@@ -199,23 +199,14 @@ class Move:
 
     @staticmethod
     def _get_valid_placements(board):
-        for ring_index in range(board.num_rings):
-            for index in range(board.ring_size):
-                if board.Player.none is board.rings[ring_index][index]:
-                    yield Move(board, (ring_index, index))
+        for target in board.get_player_pieces(board.Player.none):
+            yield Move(board, target)
 
     @staticmethod
     def _get_valid_shifts(board):
-        for source in Move._get_valid_shift_sources(board):
+        for source in board.get_player_pieces(board.next_player):
             for target in Move._get_valid_shift_targets(board, source):
                 yield Move(board, target, source)
-
-    @staticmethod
-    def _get_valid_shift_sources(board):
-        for ring_index in range(board.num_rings):
-            for index in range(board.ring_size):
-                if board.next_player is board.rings[ring_index][index]:
-                    yield (ring_index, index)
 
     @staticmethod
     def _get_valid_shift_targets(board, source):
@@ -230,13 +221,6 @@ class Move:
             move = Move(board, target, source)
             if move._is_valid_move():
                 yield target
-
-    @staticmethod
-    def _get_player_coordinates(board, player):
-        for ring_index in range(board.num_rings):
-            for ring_position in range(board.ring_size):
-                if board.rings[ring_index][ring_position] is player:
-                    yield (ring_index, ring_position)
 
     def get_result(self):
         if self.board.is_placing():
@@ -259,15 +243,8 @@ class Move:
 
         if new_board.turn_num > (new_board.piece_count * 2):
             new_board.turn_num = -1
-        new_board.next_player = self._last_player(self.board)
+        new_board.next_player = self.board.last_player
         return new_board
-
-    @staticmethod
-    def _last_player(board):
-        if board.Player.white == board.next_player:
-            return board.Player.black
-        else:
-            return board.Player.white
 
     def _get_player(self, position):
         return self.board.rings[position.ring_index][position.ring_position]

@@ -52,6 +52,13 @@ class Board:
         self.next_player = Board.Player.white
         self.turn_num = 0
 
+    @property
+    def last_player(self):
+        if self.Player.white == self.next_player:
+            return self.Player.black
+        else:
+            return self.Player.white
+
     def is_placing(self):
         return self.turn_num >= 0
 
@@ -59,6 +66,12 @@ class Board:
         valid_moves = move.Move.get_valid_moves(self)
         child_boards = [x.get_result() for x in valid_moves]
         return self.deduplicate_boards(child_boards)
+
+    def get_player_pieces(self, player):
+        for ring_index in range(self.num_rings):
+            for ring_position in range(self.ring_size):
+                if self.rings[ring_index][ring_position] is player:
+                    yield (ring_index, ring_position)
 
     @staticmethod
     def deduplicate_boards(boards):
