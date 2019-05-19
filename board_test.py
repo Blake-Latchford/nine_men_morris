@@ -41,6 +41,15 @@ class TestOperations(unittest.TestCase):
 
                     self.assertEqual(origianl.get_mirrored(offset), mirrored)
 
+    def test_last_player(self):
+        board = Board()
+        self.assertIs(board.next_player, board.Player.white)
+        self.assertIs(board.last_player, board.Player.black)
+
+        board.next_player = board.Player.black
+        self.assertIs(board.next_player, board.Player.black)
+        self.assertIs(board.last_player, board.Player.white)
+
 class TestIDs(unittest.TestCase):
     def test_empty(self):
         self.assertEqual(
