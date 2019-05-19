@@ -174,20 +174,69 @@ class Move:
 
     @staticmethod
     def get_valid_moves(board):
-        if board.is_placing():
-            return Move._get_valid_placements(board)
+        opponent_coordinates = tuple(Move._get_player_coordinates(
+            board, Move._last_player(board)))
+        mill_moves = []
+        for valid_move in Move._get_valid_moves(board):
+            if valid_move.creates_mill():
+                for opponent_coordinate in opponent_coordinates:
+                    mill_move = copy.deepcopy(valid_move)
+                    mill_move.mill_target = opponent_coordinate
+                    mill_moves.append(mill_move)
+            else:
+                mill_moves.append(valid_move)
 
-        return None
+        return mill_moves
+
+    @staticmethod
+    def _get_valid_moves(board):
+        if board.is_placing():
+            valid_moves = Move._get_valid_placements(board)
+        else:
+            valid_moves = Move._get_valid_shifts(board)
+
+        return valid_moves
 
     @staticmethod
     def _get_valid_placements(board):
-        valid_moves = []
         for ring_index in range(board.num_rings):
             for index in range(board.ring_size):
                 if board.Player.none is board.rings[ring_index][index]:
-                    valid_moves.append(
-                        Move(board, (ring_index, index)))
-        return valid_moves
+                    yield Move(board, (ring_index, index))
+
+    @staticmethod
+    def _get_valid_shifts(board):
+        for source in Move._get_valid_shift_sources(board):
+            for target in Move._get_valid_shift_targets(board, source):
+                yield Move(board, target, source)
+
+    @staticmethod
+    def _get_valid_shift_sources(board):
+        for ring_index in range(board.num_rings):
+            for index in range(board.ring_size):
+                if board.next_player is board.rings[ring_index][index]:
+                    yield (ring_index, index)
+
+    @staticmethod
+    def _get_valid_shift_targets(board, source):
+        for offset in (-1, 1):
+            target = (source[0] + offset, source[1])
+            if target[0] > 0 and target[0] < board.num_rings:
+                move = Move(board, target, source)
+                if move._is_valid_move():
+                    yield target
+
+            target = (source[0], source[1] + offset)
+            move = Move(board, target, source)
+            if move._is_valid_move():
+                yield target
+
+    @staticmethod
+    def _get_player_coordinates(board, player):
+        for ring_index in range(board.num_rings):
+            for ring_position in range(board.ring_size):
+                if board.rings[ring_index][ring_position] is player:
+                    yield (ring_index, ring_position)
 
     def get_result(self):
         if self.board.is_placing():
@@ -225,9 +274,10 @@ class Move:
 
     def __str__(self):
         return (
-            "target(" + str(self._target) + ")" +
-            "source(" + str(self._source) + ")" +
-            "mill_target(" + str(self._mill_target) + ")"
+            "Move(" +
+            "target(" + str(self._target) + ") " +
+            "source(" + str(self._source) + ") " +
+            "mill_target(" + str(self._mill_target) + "))"
         )
 
     def __repr__(self):

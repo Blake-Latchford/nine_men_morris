@@ -6,7 +6,7 @@ from move import Move
 class TestEquality(unittest.TestCase):
     def test_equal(self):
         board = Board()
-        
+
         first = Move(board, (0, 0))
         second = Move(board, (0, 0))
         third = Move(board, (0, 1))
@@ -71,12 +71,14 @@ class TestPlacement(unittest.TestCase):
         move = Move(board, (0, 2))
 
         self.assertFalse(move.is_valid())
+        self.assertNotIn(move, Move.get_valid_moves(board))
         self.assertTrue(move.creates_mill())
 
         move = Move(board, (0, 2),
                     mill_target=(0, 3))
 
         self.assertTrue(move.is_valid())
+        self.assertIn(move, Move.get_valid_moves(board))
         self.assertTrue(move.creates_mill())
 
         board = move.get_result()
@@ -181,6 +183,7 @@ class TestMoving(unittest.TestCase):
                 source, target, mill_target, result = instruction
                 move = Move(self.board, target, source, mill_target)
                 self.assertTrue(move.is_valid())
+                self.assertIn(move, Move.get_valid_moves(self.board))
                 self.assertEqual(move.creates_mill(), result)
 
     def test_valid_black_shifts(self):
@@ -199,6 +202,7 @@ class TestMoving(unittest.TestCase):
                 source, target, mill_target, result = instruction
                 move = Move(self.board, target, source, mill_target)
                 self.assertTrue(move.is_valid())
+                self.assertIn(move, Move.get_valid_moves(self.board))
                 self.assertEqual(move.creates_mill(), result)
 
     def test_invalid_shifts(self):
@@ -220,6 +224,7 @@ class TestMoving(unittest.TestCase):
                 source, target = instruction
                 move = Move(self.board, target, source)
                 self.assertFalse(move.is_valid())
+                self.assertNotIn(move, Move.get_valid_moves(self.board))
 
 if __name__ == '__main__':
     unittest.main(exit=False)
