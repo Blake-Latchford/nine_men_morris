@@ -149,7 +149,7 @@ class TestPlacement(unittest.TestCase):
         self.assertFalse(
             Move(board, (1, 0)).creates_mill())
 
-class TestMoving(unittest.TestCase):
+class TestShift(unittest.TestCase):
     def setUp(self):
         board = Board()
         self.board = board
